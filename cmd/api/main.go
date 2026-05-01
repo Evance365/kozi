@@ -3,9 +3,11 @@
 import (
     "log"
 
+    "github.com/gin-gonic/gin"
     "github.com/joho/godotenv"
     "github.com/Evance365/kozi/internal/config"
     "github.com/Evance365/kozi/internal/db"
+    "github.com/Evance365/kozi/internal/handlers"
 )
 
 func main() {
@@ -21,5 +23,13 @@ func main() {
     }
     defer conn.Close()
 
-    log.Println("kozi is ready")
+    router := gin.Default()
+
+    router.POST("/results", handlers.PostResults(conn))
+    router.GET("/matches", handlers.GetMatches(conn))
+
+    log.Println("kozi running on :8080")
+    if err := router.Run(":8080"); err != nil {
+        log.Fatalf("server error: %v", err)
+    }
 }

@@ -1,4 +1,7 @@
+@'
 .env
 *.exe
 *.test
 /tmp
+test.json
+'@ | Set-Content .gitignore -Encoding UTF8
