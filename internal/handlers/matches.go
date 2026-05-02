@@ -29,9 +29,9 @@ func GetMatches(db *sql.DB) gin.HandlerFunc {
         }
         defer rows.Close()
 
-        var allPoints []int
+        var allPoints []float64
         for rows.Next() {
-            var p int
+            var p float64
             if err := rows.Scan(&p); err != nil {
                 c.JSON(http.StatusInternalServerError, gin.H{"error": "could not read points"})
                 return
@@ -44,14 +44,16 @@ func GetMatches(db *sql.DB) gin.HandlerFunc {
             return
         }
 
-        sort.Sort(sort.Reverse(sort.IntSlice(allPoints)))
+        sort.Slice(allPoints, func(i, j int) bool {
+            return allPoints[i] > allPoints[j]
+        })
 
         top := allPoints
         if len(top) > 7 {
             top = top[:7]
         }
 
-        total := 0
+        var total float64
         for _, p := range top {
             total += p
         }
