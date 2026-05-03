@@ -1,8 +1,10 @@
-﻿package main
+package main
 
 import (
     "log"
+    "os"
 
+    "github.com/gin-contrib/cors"
     "github.com/gin-gonic/gin"
     "github.com/joho/godotenv"
     "github.com/Evance365/kozi/internal/config"
@@ -11,9 +13,7 @@ import (
 )
 
 func main() {
-    if err := godotenv.Load(); err != nil {
-        log.Fatal("failed to load .env file")
-    }
+    godotenv.Load()
 
     cfg := config.Load()
 
@@ -25,11 +25,28 @@ func main() {
 
     router := gin.Default()
 
+    allowedOrigins := []string{"http://localhost:3000"}
+    if origin := os.Getenv("ALLOWED_ORIGIN"); origin != "" {
+        allowedOrigins = append(allowedOrigins, origin)
+    }
+
+    router.Use(cors.New(cors.Config{
+        AllowOrigins:     allowedOrigins,
+        AllowMethods:     []string{"GET", "POST", "OPTIONS"},
+        AllowHeaders:     []string{"Content-Type"},
+        AllowCredentials: false,
+    }))
+
     router.POST("/results", handlers.PostResults(conn))
     router.GET("/matches", handlers.GetMatches(conn))
 
-    log.Println("kozi running on :8080")
-    if err := router.Run(":8080"); err != nil {
+    port := os.Getenv("PORT")
+    if port == "" {
+        port = "8080"
+    }
+
+    log.Printf("kozi running on :%s", port)
+    if err := router.Run(":" + port); err != nil {
         log.Fatalf("server error: %v", err)
     }
 }
